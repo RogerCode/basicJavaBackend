@@ -25,7 +25,6 @@ public class AuthenticationService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-
     public ResponseEntity login(LoginRequest loginRequest){
         try {
             Authentication authenticate = authenticationManager

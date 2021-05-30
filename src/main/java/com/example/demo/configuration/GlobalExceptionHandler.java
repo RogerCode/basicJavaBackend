@@ -17,7 +17,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InternalAuthenticationServiceException.class)
     public ResponseEntity handleNotFoundException(HttpServletRequest request, InternalAuthenticationServiceException ex) {
         logger.error("InternalAuthenticationServiceException {}\n", request.getRequestURI(), ex);
-
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("ERROR");

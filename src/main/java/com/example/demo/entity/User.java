@@ -1,16 +1,10 @@
 package com.example.demo.entity;
 
-
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
-
-
 import javax.persistence.*;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;

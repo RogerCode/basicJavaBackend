@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,6 +25,8 @@ public class AuthenticationService {
     private JwtTokenUtil jwtTokenUtil;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public ResponseEntity login(LoginRequest loginRequest){
         try {
@@ -43,7 +46,7 @@ public class AuthenticationService {
             return new ResponseEntity(HttpStatus.BAD_REQUEST);
         }
         User user = new User();
-        user.setPassword(registerRequest.getPassword());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setUserName(registerRequest.getUserName());
         userRepository.save(user);
         return new ResponseEntity(HttpStatus.ACCEPTED);

@@ -34,8 +34,7 @@ public class AuthenticationService {
                     .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUserName(), loginRequest.getPassword()));
             User user = (User) authenticate.getPrincipal();
             return ResponseEntity.ok()
-                    .header(HttpHeaders.AUTHORIZATION, jwtTokenUtil.generateAccessToken(user))
-                    .body("this is a test");
+                    .body(jwtTokenUtil.generateAccessToken(user));
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

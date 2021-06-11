@@ -21,7 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import javax.servlet.http.HttpServletResponse;
-import static java.util.List.of;
+
 import static java.util.Optional.ofNullable;
 
 @EnableWebSecurity
@@ -34,8 +34,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private UserRepository userRepo;
-    @Autowired
-    private JwtTokenFilter jwtTokenFilter;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -43,7 +41,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .findByUserName(username).map( user -> {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             user, null,
-                            ofNullable(user).map(UserDetails::getAuthorities).orElse(of())
+                            ofNullable(user).map(UserDetails::getAuthorities).orElse(null)
                     );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     return user;
@@ -72,11 +70,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         }
                 )
                 .and();
-        http.authorizeRequests().antMatchers("/authentication/login").permitAll()
-                .antMatchers("/authentication/register").permitAll()
-                .antMatchers("/static/**").permitAll()
-                .anyRequest().authenticated().and()
-                .addFilterAfter(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+
+        //Las urls de aqui son las que necesitan autenticacion
+        http.antMatcher("/register").authorizeRequests() //
+                .anyRequest().authenticated() //
+                .and()
+                .addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
@@ -85,8 +85,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        config.addAllowedHeader("content-type");
+        config.addAllowedHeader("authorization");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("OPTIONS");
+        config.setAllowCredentials(true);
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }

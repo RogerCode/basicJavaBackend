@@ -17,8 +17,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
 
-import static java.util.List.of;
+
 import static java.util.Optional.ofNullable;
 
 @Service
@@ -38,8 +39,10 @@ public class AuthenticationService {
             Authentication authenticate = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUserName(), loginRequest.getPassword()));
             User user = (User) authenticate.getPrincipal();
+            RequestContextHolder.currentRequestAttributes().getSessionId();
             return ResponseEntity.ok()
                     .body(jwtTokenUtil.generateAccessToken(user));
+
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -54,8 +57,7 @@ public class AuthenticationService {
         user.setUserName(registerRequest.getUserName());
         userRepository.save(user);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                user, null,
-                ofNullable(user).map(UserDetails::getAuthorities).orElse(of())
+                user, null
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return ResponseEntity.ok()

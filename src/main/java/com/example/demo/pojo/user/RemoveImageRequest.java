@@ -3,7 +3,7 @@ package com.example.demo.pojo.user;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.processing.Generated;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;

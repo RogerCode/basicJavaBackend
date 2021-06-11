@@ -9,16 +9,19 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.filter.OncePerRequestFilter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import static org.springframework.util.StringUtils.isEmpty;
 
-@Component
-public class JwtTokenFilter extends OncePerRequestFilter {
+
+public class JwtTokenFilter extends GenericFilterBean {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
@@ -26,11 +29,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private UserRepository userRepo;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain chain) throws ServletException, IOException {
+    public void doFilter(final ServletRequest httpServletRequest,
+                         final ServletResponse httpServletResponse, final FilterChain filterChain)
+            throws IOException, ServletException {
 
-        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final HttpServletRequest request = (HttpServletRequest) httpServletRequest;
+        final HttpServletResponse response = (HttpServletResponse) httpServletResponse;
+
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if(header == null){
+            header = request.getParameter("token");
+        }
         if (isEmpty(header) || !header.startsWith("Bearer ")) {
             SecurityContextHolder.clearContext();
             throw new MalformedJwtException("jwt token not valid");
@@ -44,20 +53,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
             throw new MalformedJwtException("jwt token not valid");
         }
-        chain.doFilter(request, response);
+        filterChain.doFilter(request, response);
     }
 
     private boolean checkUserNameAndPassword (String token){
+        SecurityContextHolder.getContext().getAuthentication();
         SecurityContext securityContext = SecurityContextHolder.getContext();
         UserDetails userdetails = (UserDetails) securityContext.getAuthentication().getPrincipal();
         return jwtTokenUtil.getUsername(token) == userdetails.getUsername();
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request){
-        if(request.getRequestURI().contains("login") || request.getRequestURI().contains("register")){
-            return true;
-        }
-        return false;
-    }
 }

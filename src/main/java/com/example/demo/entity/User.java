@@ -19,10 +19,20 @@ public class User implements UserDetails, Serializable {
     private String userName;
     @Column(name="password")
     private String password;
+    @Column(name="email")
+    private String email;
     @ElementCollection
     private List<String> images;
+    @Column(name = "enabled")
+    private boolean enabled;
 
     public User() {
+        super();
+        this.enabled=false;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setUserName(String userName) {
@@ -35,6 +45,10 @@ public class User implements UserDetails, Serializable {
 
     public List<String> getImages() {
         return images;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public void setImages(List<String> images) {
@@ -54,6 +68,10 @@ public class User implements UserDetails, Serializable {
     @Override
     public String getPassword() {
         return password;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     @Override

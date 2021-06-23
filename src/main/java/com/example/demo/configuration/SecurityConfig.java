@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,9 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import javax.servlet.http.HttpServletResponse;
 
-import static java.util.Optional.ofNullable;
+import javax.servlet.http.HttpServletResponse;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
@@ -38,15 +36,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(username ->  userRepo
-                .findByUserName(username).map( user -> {
+                .findByUserNameAndEnabled(username, true).map( user -> {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            user, null,
-                            ofNullable(user).map(UserDetails::getAuthorities).orElse(null)
-                    );
+                            user, null,null);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     return user;
                 })
-                .orElseThrow(() -> new UsernameNotFoundException("Student not found - " + username)));
+                .orElseThrow(() -> new UsernameNotFoundException(username)));
     }
 
     @Bean
@@ -60,7 +56,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http = http.cors().and().csrf().disable();
         http = http
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and();
         http = http
                 .exceptionHandling()
@@ -73,7 +69,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
         //Las urls de aqui son las que necesitan autenticacion
-        http.antMatcher("/register").authorizeRequests() //
+        http.antMatcher("/authentication/validate-token").authorizeRequests() //
                 .anyRequest().authenticated() //
                 .and()
                 .addFilterBefore(new JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -104,5 +100,4 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();
     }
-
 }
